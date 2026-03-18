@@ -1,0 +1,65 @@
+SQL Injection - WHERE Clause (Hidden Data)
+
+1. 문제
+카테고리 필터에서 SQL Injection 취약점 존재  
+숨겨진 상품(unreleased)까지 출력하는 것이 목표
+
+
+2. 원래 동작
+서버는 다음과 같은 쿼리를 실행한다
+
+SELECT * FROM products 
+WHERE category = 'Gifts' 
+AND released = 1
+
+released = 1 → 공개된 상품만 출력
+released = 0 → 숨겨진 상품
+
+3. 시도 과정
+
+1차 시도
+URL 구조 확인
+category 값만 변경 가능하다는 것을 확인
+
+2차 시도
+' OR 1=1 -- 입력 시도
+모든 상품이 출력됨
+
+4. 결과
+숨겨진 상품까지 모두 출력됨 (Lab solved)
+
+5. 원리 (이해한 내용)
+
+입력값:
+
+Gifts' OR 1=1 --
+
+쿼리:
+
+WHERE category = 'Gifts' OR 1=1 --'
+AND released = 1
+
+' → 문자열 종료
+OR 1=1 → 항상 참 조건
+-- → 뒤의 조건 (released=1) 무시
+
+결과적으로:
+
+WHERE category = 'Gifts' OR 1=1
+
+→ 모든 데이터 출력
+
+
+6. 헷갈렸던 부분 (중요)
+
+왜 따옴표를 하나만 쓰는지 이해가 어려웠음
+released=1 조건이 URL에 없어서 어떻게 조작하는지 헷갈림
+ OR 1=1이 왜 항상 참인지 처음에는 이해가 안 됨
+--가 뒤를 무시한다는 개념이 처음에는 생소했음
+
+
+7. 깨달은 점
+
+SQL Injection은 직접 조건을 바꾸는 게 아니라 "전체 쿼리 흐름을 바꾸는 것"
+입력값 하나로 서버의 로직을 완전히 바꿀 수 있음
+WHERE 조건을 조작하면 숨겨진 데이터까지 접근 가능함
